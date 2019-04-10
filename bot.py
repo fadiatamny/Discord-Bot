@@ -81,12 +81,6 @@ class Music(commands.Cog):
 
         @commands.command(name='play', aliases=['playhere', 'joinplay'])
         async def play(self, ctx, *, arg):
-
-            print('\n-------------------------\n')
-            print('\n'+str(datetime.datetime.now()))
-            print('client status : ')
-            print(ctx.voice_client.is_playing())
-            print(ctx.bots.voice_clients[0].is_playing())
             
             if not ctx.voice_client.is_playing():
                 if not self.playlist:
@@ -109,9 +103,6 @@ class Music(commands.Cog):
                 track = self.playlist.pop(0)
                 ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
                 await ctx.send('Now playing: {}'.format(track.title))
-
-                print('client status after playing : ')
-                print(ctx.voice_client.is_playing())
 
             else:
                 if arg.startswith('http'):
@@ -138,9 +129,10 @@ class Music(commands.Cog):
         #insure smooth switching.
         @play.before_invoke
         async def ensure_voice(self, ctx):
-            if ctx.author.voice.channel == ctx.voice_client.channel:
-                return
+
             if ctx.voice_client is None:
+                if ctx.author.voice.channel == ctx.voice_client.channel:
+                    return
                 if ctx.author.voice:
                     await ctx.author.voice.channel.connect()
                 else:
