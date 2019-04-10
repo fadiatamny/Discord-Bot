@@ -82,7 +82,9 @@ class Music(commands.Cog):
         @commands.command(name='play', aliases=['playhere', 'joinplay'])
         async def play(self, ctx, *, arg):
             print('\n-------------------------\n')
-            print(ctx.voice_client) 
+            print(ctx.voice_client)
+            print(ctx.voice_client._player) 
+            print(ctx.voice_client._player.is_playing())
             print('\n-------------------------\n')
             print('\n'+str(datetime.datetime.now()))
             print('inital list:')
