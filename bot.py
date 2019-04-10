@@ -85,7 +85,6 @@ class Music(commands.Cog):
             if not ctx.voice_client.is_playing():
                 if not self.playlist:
                     if arg.startswith('http'):
-                        async with ctx.typing():
                             self.playlist.append(await YTDLSource.from_url(arg, loop=self.bot.loop))
                     else:
                         async with ctx.typing():
@@ -102,7 +101,9 @@ class Music(commands.Cog):
 
                 track = self.playlist.pop(0)
                 ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
-                await ctx.send('Now playing: {}'.format(track.title))
+
+                async with ctx.typing():
+                    await ctx.send('Now playing: {}'.format(track.title))
 
             else:
                 if arg.startswith('http'):
@@ -129,15 +130,15 @@ class Music(commands.Cog):
         #insure smooth switching.
         @play.before_invoke
         async def ensure_voice(self, ctx):
-            if ctx.voice_client is None:
-                if ctx.author.voice:
+            if ctx.author.voice:    
+                if ctx.voice_client is None:
                     await ctx.author.voice.channel.connect()
-                else:
-                    await ctx.send("You are not connected to a voice channel.")
-                    raise commands.CommandError("Author not connected to a voice channel.")
-            elif ctx.voice_client.is_playing():
-                if ctx.author.voice.channel != ctx.voice_client.channel:
-                    ctx.voice_client.stop()
+                elif ctx.voice_client.is_playing():
+                    if ctx.author.voice.channel != ctx.voice_client.channel:
+                        ctx.voice_client.stop()
+            else:
+                await ctx.send("You are not connected to a voice channel.")
+                raise commands.CommandError("Author not connected to a voice channel.")
 
 
 #initialize Bot enviroment 
