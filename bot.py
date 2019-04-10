@@ -129,10 +129,9 @@ class Music(commands.Cog):
         #insure smooth switching.
         @play.before_invoke
         async def ensure_voice(self, ctx):
-
+            if ctx.author.voice.channel == ctx.voice_client.channel and ctx.voice_client:
+                return
             if ctx.voice_client is None:
-                if ctx.author.voice.channel == ctx.voice_client.channel:
-                    return
                 if ctx.author.voice:
                     await ctx.author.voice.channel.connect()
                 else:
