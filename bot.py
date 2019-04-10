@@ -4,7 +4,8 @@ import random
 import youtube_dl
 import asyncio
 import logging
-import datetime
+import time
+
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -67,65 +68,82 @@ class Music(commands.Cog):
 
         def __init__(self, bot):
             self.bot = bot
-            self.playing = False
             self.playlist = [] 
             self.volume = 1
+            
+        @commands.command()
+        async def func(self, ctx):        
+            while self.playlist:
+                if not ctx.voice_client.is_playing():
+                    track = self.playlist.pop(0)
+                    ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
+                    async with ctx.typing():
+                        await ctx.send('Now playing: {}'.format(track.title))
+            return
 
         @commands.command()
-        async def join(self, ctx, *, channel: discord.VoiceChannel):
+        async def join(self, ctx):
 
             if ctx.voice_client is not None:
                 await ctx.voice_client.move_to(ctx.author.voice.channel)
             else:
                 await ctx.author.voice.channel.connect()
 
-        @commands.command(name='play', aliases=['playhere', 'joinplay'])
+        @commands.command(name='play', aliases=['p'])
         async def play(self, ctx, *, arg):
-            
+
             if not ctx.voice_client.is_playing():
                 if not self.playlist:
                     if arg.startswith('http'):
-                            self.playlist.append(await YTDLSource.from_url(arg, loop=self.bot.loop))
+                        self.playlist.append(await YTDLSource.from_url(arg, loop=self.bot.loop))
                     else:
-                        async with ctx.typing():
-                            self.playlist.append(await YTDLSource.search(arg, loop=self.bot.loop))
-
-                else:
-                    if arg.startswith('http'):
-                        async with ctx.typing():
-                            player = await YTDLSource.from_url(arg, loop=self.bot.loop)
-                    else:
-                        async with ctx.typing():
-                            player = await YTDLSource.search(arg, loop=self.bot.loop)
-                    self.playlist.append(player)
-
-                track = self.playlist.pop(0)
-                ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
-
-                async with ctx.typing():
-                    await ctx.send('Now playing: {}'.format(track.title))
+                        self.playlist.append(await YTDLSource.search(arg, loop=self.bot.loop))
+                    func(ctx)
 
             else:
                 if arg.startswith('http'):
-                    async with ctx.typing():
-                        player = await YTDLSource.from_url(arg, loop=self.bot.loop)
+                    player = await YTDLSource.from_url(arg, loop=self.bot.loop)
                 else:
-                    async with ctx.typing():
-                        player = await YTDLSource.search(arg, loop=self.bot.loop)
+                    player = await YTDLSource.search(arg, loop=self.bot.loop)
                 self.playlist.append(player)
+                async with ctx.typing():
+                    await ctx.send('Added: {} to the list'.format(player.title) )
+                return
 
+            return
+                
+        @commands.command(name='skip', aliases=['s'])
+        async def skip(self, ctx):
+            if ctx.voice_client is None:
+                return await ctx.send("Not connected to a voice channel.")
 
-        @commands.command()
+            if self.playlist:
+                ctx.voice_client.stop()
+                func(ctx)
+                await ctx.send("skipped")
+            else:
+                ctx.voice_client.stop()
+                await ctx.send("No more songs - Stopped")
+
+            return
+
+        @commands.command(name='volume', aliases=['vol'])
         async def volume(self, ctx, volume: float):
             if ctx.voice_client is None:
                 return await ctx.send("Not connected to a voice channel.")
 
+            self.volume = volume
             ctx.voice_client.source.volume = volume
             await ctx.send("Changed volume to {}%".format(volume))
 
+            return
+
         @commands.command(name='stop', aliases=['leave'])
         async def stop(self, ctx):
+            self.playlist.clear()
             await ctx.voice_client.disconnect()
+
+            return
 
         #insure smooth switching.
         @play.before_invoke
@@ -139,6 +157,8 @@ class Music(commands.Cog):
             else:
                 await ctx.send("You are not connected to a voice channel.")
                 raise commands.CommandError("Author not connected to a voice channel.")
+
+            return
 
 
 #initialize Bot enviroment 
