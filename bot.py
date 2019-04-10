@@ -84,7 +84,8 @@ class Music(commands.Cog):
             print('\n-------------------------\n')
             print(ctx.voice_client)
             print(ctx.voice_client._player) 
-            print(ctx.voice_client._player.is_playing())
+            if ctx.voice_client._player:
+                print(ctx.voice_client._player.is_playing())
             print('\n-------------------------\n')
             print('\n'+str(datetime.datetime.now()))
             print('inital list:')
