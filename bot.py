@@ -4,6 +4,7 @@ import random
 import youtube_dl
 import asyncio
 import logging
+import datetime
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -80,16 +81,24 @@ class Music(commands.Cog):
 
         @commands.command(name='play', aliases=['playhere', 'joinplay'])
         async def play(self, ctx, *, arg):
+            print('\n-------------------------\n')
+            print(ctx.voice_client) 
+            print('\n-------------------------\n')
+            print('\n'+str(datetime.datetime.now()))
+            print('inital list:')
             print(self.playlist)
+            print('client status : ')
             print(ctx.voice_client.is_playing())
+            
             if not ctx.voice_client.is_playing():
-                if self.playlist.count == 0:
+                if not self.playlist:
                     if arg.startswith('http'):
                         async with ctx.typing():
                             self.playlist.append(await YTDLSource.from_url(arg, loop=self.bot.loop))
                     else:
                         async with ctx.typing():
                             self.playlist.append(await YTDLSource.search(arg, loop=self.bot.loop))
+
                 else:
                     if arg.startswith('http'):
                         async with ctx.typing():
@@ -97,17 +106,30 @@ class Music(commands.Cog):
                     else:
                         async with ctx.typing():
                             player = await YTDLSource.search(arg, loop=self.bot.loop)
-
                     self.playlist.append(player)
-                
+
+
+                print('after edit list:')
                 print(self.playlist)
 
                 track = self.playlist.pop(0)
                 ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
                 await ctx.send('Now playing: {}'.format(track.title))
 
+                print('after playing list:')
                 print(self.playlist)
-                                
+                print('client status after playing : ')
+                print(ctx.voice_client.is_playing())
+
+            else:
+                if arg.startswith('http'):
+                    async with ctx.typing():
+                        player = await YTDLSource.from_url(arg, loop=self.bot.loop)
+                else:
+                    async with ctx.typing():
+                        player = await YTDLSource.search(arg, loop=self.bot.loop)
+                self.playlist.append(player)
+
 
         @commands.command()
         async def volume(self, ctx, volume: float):
