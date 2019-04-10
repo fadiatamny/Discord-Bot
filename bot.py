@@ -81,17 +81,12 @@ class Music(commands.Cog):
 
         @commands.command(name='play', aliases=['playhere', 'joinplay'])
         async def play(self, ctx, *, arg):
-            print('\n-------------------------\n')
-            print(ctx.voice_client)
-            print(ctx.voice_client._player) 
-            if ctx.voice_client._player:
-                print(ctx.voice_client._player.is_playing())
+
             print('\n-------------------------\n')
             print('\n'+str(datetime.datetime.now()))
-            print('inital list:')
-            print(self.playlist)
             print('client status : ')
             print(ctx.voice_client.is_playing())
+            print(ctx.bots.voice_clients[0].is_playing())
             
             if not ctx.voice_client.is_playing():
                 if not self.playlist:
@@ -111,16 +106,10 @@ class Music(commands.Cog):
                             player = await YTDLSource.search(arg, loop=self.bot.loop)
                     self.playlist.append(player)
 
-
-                print('after edit list:')
-                print(self.playlist)
-
                 track = self.playlist.pop(0)
                 ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
                 await ctx.send('Now playing: {}'.format(track.title))
 
-                print('after playing list:')
-                print(self.playlist)
                 print('client status after playing : ')
                 print(ctx.voice_client.is_playing())
 
