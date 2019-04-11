@@ -8,7 +8,7 @@ import logging
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-
+#init youtube and ffmpg  options
 ytdl_format_options = {
     'format': 'bestaudio/best',
     'restrictfilenames': True,
@@ -29,7 +29,7 @@ ffmpeg_options = {
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
-
+#the youtubedll class
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
@@ -51,7 +51,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-    # Placeholder
     @classmethod
     async def search(cls, search, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
@@ -62,14 +61,15 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-
+#the music cog
 class Music(commands.Cog):   
 
         def __init__(self, bot):
             self.bot = bot
             self.playlist = []            
-            self.volume = 0.5
-
+            self.volume = 0.5  
+            
+        #plays the playlist till empty
         async def stream(self, ctx):   
 
             while self.playlist:
@@ -79,7 +79,7 @@ class Music(commands.Cog):
                     ctx.voice_client.source.volume = self.volume
                     async with ctx.typing():
                         await ctx.send('Now playing: {}'.format(track.title))
-
+        #joins server
         @commands.command()
         async def join(self, ctx):
 
@@ -88,6 +88,7 @@ class Music(commands.Cog):
             else:
                 await ctx.author.voice.channel.connect()
 
+        #joins a chat room nstarts playing song given from string or url
         @commands.command(name='play', aliases=['p'])
         async def play(self, ctx, *, arg):
             
@@ -107,7 +108,8 @@ class Music(commands.Cog):
                 self.playlist.append(player)
                 async with ctx.typing():
                     await ctx.send('Added: {} to the list'.format(player.title) )
-                
+         
+        #skips song in queue
         @commands.command(name='skip', aliases=['s'])
         async def skip(self, ctx):
 
@@ -128,6 +130,7 @@ class Music(commands.Cog):
                 ctx.voice_client.stop()
                 await ctx.send("No more songs - Stopped")
 
+        #prints current queue
         @commands.command(name='queue', aliases=['q'])
         async def queue(self, ctx):
             s = "```\n"
@@ -138,7 +141,8 @@ class Music(commands.Cog):
             s = s + "```"
 
             await ctx.send(s)
-
+            
+        #removes a song from queue with index
         @commands.command(name='remove', aliases=['r'])
         async def remove(self, ctx, index: int):
             if self.playlist:
@@ -147,6 +151,7 @@ class Music(commands.Cog):
             else:
                 await ctx.send("Queue is empty")
 
+        #sets the voice clients volume in %
         @commands.command(name='volume', aliases=['vol','v'])
         async def volume(self, ctx, volume: float):
 
@@ -157,6 +162,7 @@ class Music(commands.Cog):
             ctx.voice_client.source.volume = volume
             await ctx.send("Changed volume to {}%".format(volume))
 
+        #stops the client from transmiting voice
         @commands.command(name='stop', aliases=['leave'])
         async def stop(self, ctx):
 
@@ -180,8 +186,7 @@ class Music(commands.Cog):
 
 #initialize Bot enviroment 
 
-#token = input('Bot Token:')
-token = "testtoken.txt"
+token = input('Bot Token:')
 btoken = open(token, "r").read() 
 
 description = 'Tragicly organize Tragic'
