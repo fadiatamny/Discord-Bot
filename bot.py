@@ -72,7 +72,8 @@ class Music(commands.Cog):
             self.volume = 0.5  
             
             #plays the playlist till empty
-        async def stream(self, ctx):   
+        @commands.command(name="play", aliases=['p'])
+        async def play(self, ctx):   
 
             while self.playlist:
                 if not ctx.voice_client.is_playing():
@@ -82,8 +83,6 @@ class Music(commands.Cog):
                     async with ctx.typing():
                         await ctx.send('Now playing: {}'.format(track.title))
 
-            if self.playlist:
-                await self.stream(ctx)
 
             #joins server
         @commands.command()
@@ -95,23 +94,16 @@ class Music(commands.Cog):
                 await ctx.author.voice.channel.connect()
 
             #joins a chat room nstarts playing song given from string or url
-        @commands.command(name='play', aliases=['p'])
-        async def play(self, ctx, *, arg):
+        @commands.command(name='add', aliases=['a'])
+        async def add(self, ctx, *, arg):
             
-            if not ctx.voice_client.is_playing():
-                if not self.playlist:
-                    if arg.startswith('http'):
-                        player = await YTDLSource.from_url(arg, loop=self.bot.loop)
-                    else:
-                        player = await YTDLSource.search(arg, loop=self.bot.loop)
-                    self.playlist.append(player)
-                    await self.stream(ctx)
+            if arg.startswith('http'):
+                player = await YTDLSource.from_url(arg, loop=self.bot.loop)
             else:
-                if arg.startswith('http'):
-                    player = await YTDLSource.from_url(arg, loop=self.bot.loop)
-                else:
-                    player = await YTDLSource.search(arg, loop=self.bot.loop)
-                self.playlist.append(player)
+                player = await YTDLSource.search(arg, loop=self.bot.loop)
+            self.playlist.append(player)
+
+            if not ctx.voice_client.is_playing():
                 async with ctx.typing():
                     await ctx.send('Added: {} to the list'.format(player.title) )
          
@@ -135,9 +127,6 @@ class Music(commands.Cog):
             else:
                 ctx.voice_client.stop()
                 await ctx.send("No more songs - Stopped")
-
-            if self.playlist:
-                await self.stream(ctx)
 
             #prints current queue
         @commands.command(name='queue', aliases=['q'])
