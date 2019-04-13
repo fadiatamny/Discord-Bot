@@ -4,6 +4,8 @@ import random
 import youtube_dl
 import asyncio
 import logging
+import time
+
 
 
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -69,7 +71,7 @@ class Music(commands.Cog):
             self.playlist = []            
             self.volume = 0.5  
             
-        #plays the playlist till empty
+            #plays the playlist till empty
         async def stream(self, ctx):   
 
             while self.playlist:
@@ -79,7 +81,11 @@ class Music(commands.Cog):
                     ctx.voice_client.source.volume = self.volume
                     async with ctx.typing():
                         await ctx.send('Now playing: {}'.format(track.title))
-        #joins server
+
+            if self.playlist:
+                await self.stream(ctx)
+
+            #joins server
         @commands.command()
         async def join(self, ctx):
 
@@ -88,7 +94,7 @@ class Music(commands.Cog):
             else:
                 await ctx.author.voice.channel.connect()
 
-        #joins a chat room nstarts playing song given from string or url
+            #joins a chat room nstarts playing song given from string or url
         @commands.command(name='play', aliases=['p'])
         async def play(self, ctx, *, arg):
             
@@ -109,12 +115,12 @@ class Music(commands.Cog):
                 async with ctx.typing():
                     await ctx.send('Added: {} to the list'.format(player.title) )
          
-        #skips song in queue
+            #skips song in queue
         @commands.command(name='skip', aliases=['s'])
         async def skip(self, ctx):
 
-            if ctx.voice_client is None:
-                return await ctx.send("Not connected to a voice channel.")
+            if not ctx.author.voice :
+                return await ctx.send("You are not connected to a voice channel.")
             
             if self.playlist:
                 ctx.voice_client.stop()
@@ -130,7 +136,10 @@ class Music(commands.Cog):
                 ctx.voice_client.stop()
                 await ctx.send("No more songs - Stopped")
 
-        #prints current queue
+            if self.playlist:
+                await self.stream(ctx)
+
+            #prints current queue
         @commands.command(name='queue', aliases=['q'])
         async def queue(self, ctx):
             s = "```\n"
@@ -142,16 +151,20 @@ class Music(commands.Cog):
 
             await ctx.send(s)
             
-        #removes a song from queue with index
+            #removes a song from queue with index
         @commands.command(name='remove', aliases=['r'])
         async def remove(self, ctx, index: int):
+
+            if not ctx.author.voice :
+                return await ctx.send("You are not connected to a voice channel.")
+
             if self.playlist:
                 self.playlist.pop(index-1)
                 await ctx.send("Removed")
             else:
                 await ctx.send("Queue is empty")
 
-        #sets the voice clients volume in %
+            #sets the voice clients volume in %
         @commands.command(name='volume', aliases=['vol','v'])
         async def volume(self, ctx, volume: float):
 
@@ -162,14 +175,15 @@ class Music(commands.Cog):
             ctx.voice_client.source.volume = volume
             await ctx.send("Changed volume to {}%".format(volume))
 
-        #stops the client from transmiting voice
+            #stops the client from transmiting voice
         @commands.command(name='stop', aliases=['leave'])
         async def stop(self, ctx):
 
             self.playlist.clear()
             await ctx.voice_client.disconnect()
 
-        #insure smooth switching.
+            #insure smooth switching.
+        @join.before_invoke
         @play.before_invoke
         async def ensure_voice(self, ctx):
 
@@ -192,6 +206,14 @@ btoken = open(token, "r").read()
 description = 'Tragicly organize Tragic'
 prefix = '.'
 token = btoken
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
 
 bot = commands.Bot(command_prefix=prefix, description=description)
 
