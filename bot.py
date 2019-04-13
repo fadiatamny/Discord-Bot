@@ -67,21 +67,22 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):   
 
         def __init__(self, bot):
+            self.volume = 0.5 
             self.bot = bot
-            self.playlist = []            
-            self.volume = 0.5  
+            self.playlist = []                        
             
             #plays the playlist till empty
         @commands.command(name="play", aliases=['p'])
         async def play(self, ctx):   
 
-            while self.playlist:
-                if not ctx.voice_client.is_playing():
-                    track = self.playlist.pop(0)
-                    ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
-                    ctx.voice_client.source.volume = self.volume
-                    async with ctx.typing():
-                        await ctx.send('Now playing: {}'.format(track.title))
+            if not ctx.voice_client.is_playing():
+                while self.playlist:
+                    if not ctx.voice_client.is_playing():
+                        track = self.playlist.pop(0)
+                        ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
+                        ctx.voice_client.source.volume = self.volume
+                        async with ctx.typing():
+                            await ctx.send('Now playing: {}'.format(track.title))
 
 
             #joins server
@@ -155,7 +156,7 @@ class Music(commands.Cog):
 
             #sets the voice clients volume in %
         @commands.command(name='volume', aliases=['vol','v'])
-        async def volume(self, ctx, volume: float):
+        async def volumeLevel(self, ctx, volume: float):
 
             if ctx.voice_client is None:
                 return await ctx.send("Not connected to a voice channel.")
