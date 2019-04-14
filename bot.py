@@ -84,6 +84,7 @@ class Music(commands.Cog):
                         async with ctx.typing():
                             await ctx.send('Now playing: {}'.format(track.title))
 
+                await ctx.send("No more songs in the queue order. add more then play afterwards")
 
             #joins server
         @commands.command()
@@ -125,6 +126,7 @@ class Music(commands.Cog):
                         ctx.voice_client.source.volume = self.volume
                         async with ctx.typing():
                             await ctx.send('Now playing: {}'.format(track.title))
+                await ctx.send("No more songs in the queue order. add more then play afterwards")
             else:
                 ctx.voice_client.stop()
                 await ctx.send("No more songs - Stopped")
