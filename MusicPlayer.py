@@ -14,17 +14,19 @@ class Music(commands.Cog):
         #plays the playlist till empty
     @commands.command(name="play", aliases=['p'])
     async def play(self, ctx):   
+        if not self.playlist:
+            await ctx.send("Add songs to queue list to play them")
+        else:
+            if not ctx.voice_client.is_playing():
+                while self.playlist:
+                    if not ctx.voice_client.is_playing():
+                        track = self.playlist.pop(0)
+                        ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
+                        ctx.voice_client.source.volume = self.volume
+                        async with ctx.typing():
+                            await ctx.send('Now playing: {}'.format(track.title))
 
-        if not ctx.voice_client.is_playing():
-            while self.playlist:
-                if not ctx.voice_client.is_playing():
-                    track = self.playlist.pop(0)
-                    ctx.voice_client.play(track, after=lambda e: print('Player error: %s' % e) if e else None)
-                    ctx.voice_client.source.volume = self.volume
-                    async with ctx.typing():
-                        await ctx.send('Now playing: {}'.format(track.title))
-
-            await ctx.send("No more songs in the queue order. add more then play afterwards")
+                await ctx.send("No more songs in the queue order. add more then play afterwards")
 
         #joins server
     @commands.command()

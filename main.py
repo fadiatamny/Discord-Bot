@@ -2,9 +2,7 @@ import discord
 from discord.ext import commands
 import asyncio
 import logging
-
-from MusicCog import Music
-
+from MusicPlayer import Music
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
@@ -22,12 +20,10 @@ prefix = '.'
 
 bot = commands.Bot(command_prefix=prefix, description=description)
 
-def setup(bot):
-    bot.add_cog(Music(bot))
-
 @bot.event
 async def on_ready():
     print('Logged in as {0} {1}'.format(bot.user.id,bot.user.name))
     print('------')
+    bot.add_cog(Music(bot))
 
 bot.run(token)
